@@ -1,126 +1,147 @@
-import { useState } from "react";
-import "./App.css";
-import InputBox from "./InputBox/InputBox";
-import ListBox from "./ListContainer/ListBox";
+import React, { useState } from 'react';
+import './../styles/App.css';
+
+/**
+//! Make a button with id="btn" which on click adds the task to the list.
+Each item in the list should have a classname "list"
+Please ensure to render the task in the sequence they are added for example if a task "Buy milk" is added and then task "Buy vegetable" is added then they should be rendered in the same sequence first "Buy milk" and then "Buy vegetable".
+Each task should have edit and delete buttons corresponding to each task with class edit and delete respectively.
+There should be a textarea and save button corresponding to each task with class editTask and saveTask respectively which will be conditionally rendered when the edit button is clicked, please trigger onchange instead of using ref in editing task as test cases depend on it.
+The edited task should not be saved if the text area contains an empty string at this particular time save button should not be functional.
+On save the task should be updated and back to its normal state i.e edit and delete functionality is available.
+Initially, the task list should be empty.
+**Please use onChange instead of ref for controlled inputs as test cases depend on it.
+ */
+function ID() {
+  let id = 0;
+  return function () {
+    id++;
+    return id;
+  };
+}
+
+const getNextId = ID();
+
+function ListItem(props) {
+  const { children, onModify, onDelete } = props;
+
+  const [isEditMode, setIsEditMode] = useState(false);
+  console.log({ isEditMode });
+  const [tempTask, setTempTask] = useState(children);
+
+  return isEditMode ? (
+    <>
+      <textarea
+        className="editTask"
+        onChange={function (event) {
+          setTempTask(event.target.value);
+        }}
+        value={tempTask}
+      ></textarea>
+      <button
+        className="saveTask"
+        type="button"
+        disabled={tempTask === ''}
+        onClick={function () {
+          console.log('save click', tempTask);
+          if (tempTask !== '') {
+            onModify(tempTask);
+            setIsEditMode(false);
+          }
+        }}
+      >
+        Save
+      </button>
+    </>
+  ) : (
+    <>
+      <li className="list" key={children}>
+        {children}
+      </li>
+      <button
+        className="edit"
+        type="button"
+        onClick={function () {
+          setIsEditMode(true);
+        }}
+      >
+        Edit
+      </button>
+      <button
+        className="delete"
+        type="button"
+        onClick={function () {
+          onDelete();
+        }}
+      >
+        Delete
+      </button>
+    </>
+  );
+}
 
 function App() {
-  const [getText, setText] = useState("");
-  const [getList, setList] = useState([]);
-  const [getEdit, setEdit] = useState(false);
-  // for edit submit
-  const [getIndex, setIndex] = useState(-1);
-  const [getbtn,setbtn]=useState(false);
+  const [task, setTask] = useState('');
+  const [todoList, setTodoList] = useState([]);
 
-  // updating getText by using on change
-  const textAddition = (event) => {
-    // console.log(event.target.value);
-    setText(event.target.value);
-  };
-
-  // adding data on click
-  const addTask = () => {
-    // alert("clicked")
-    getText.length <= 0
-      ? alert("Please write a task/data in input ")
-      : setList([...getList, getText]);
-    setText("");
-  };
-
-  // for list btn
-
-  const onListClickHandler=()=>{
-    setbtn(true);
-    // alert("ckdcd")
+  function onModify(givenTask, givenI) {
+    console.log({ givenTask, givenI });
+    const newList = todoList.map(function (task, i) {
+      if (givenI === i) {
+        return givenTask;
+      }
+      return task;
+    });
+    // console.log(newList === todoList);
+    setTodoList(newList);
   }
 
-  //for edit
-  const onEditHandler = (index) => {
-    setEdit(true);
-    setText(getList[index]);
-    setIndex(index);
-  };
-
-  const onEditSubmit = (index) => {
-    let list = getList;
-    list[getIndex] = getText;
-    setList([...list]);
-    setText(""); //for makling input empty
-    setEdit(false); // for display add button after edit
-  };
-
-  // deleting data on clicking the delete button
-  const onDeleteHandler = (index) => {
-    // alert(index);
-    let list = getList; //list of data/text
-    list.splice(index, 1);
-    setList([...list]); // updating list after deleting
-  };
+  function onDelete(givenI) {
+    const newList = todoList.filter(function (el, i) {
+      return i !== givenI;
+    });
+    setTodoList(newList);
+  }
 
   return (
-    <div className="App">
-      <InputBox
-        onChangeHandler={textAddition}
-        addHandler={addTask}
-        buttonStatus={getEdit}
-        value={getText}
-        onEditSubmit={onEditSubmit}
-      />
+    <div id="main">
+      <textarea
+        id="task"
+        onChange={function (event) {
+          setTask(event.target.value);
+        }}
+        value={task}
+      ></textarea>
+      <button
+        id="btn"
+        type="button"
+        onClick={function () {
+          if (task !== '') {
+            setTodoList([...todoList, task]);
+            setTask('');
+          }
+        }}
+      >
+        Add
+      </button>
 
-      {/* {getList.length>0 && <h1>Your List is Here</h1>} */}
-      {getList && getList.length > 0 && (
-        <ListBox
-          onDelete={onDeleteHandler}
-          addList={getList}
-          onEdit={onEditHandler}
-          onListClick={onListClickHandler}
-          displayBtn={getbtn}
-        />
-      )}
+      <h3>Todo Lists</h3>
+      <ul>
+        {todoList.map((task, i) => {
+          return (
+            <ListItem
+              onModify={(newTask) => {
+                onModify(newTask, i);
+              }}
+              onDelete={() => onDelete(i)}
+            >
+              {task}
+            </ListItem>
+          );
+        })}
+      </ul>
     </div>
   );
 }
 
 export default App;
-
-
-
-
-
-
-
-  
-
-
-
-
-
-
-
-
-
- 
-   
-
-
-
-
- 
- 
-
-
-
-  
-  
-   
-   
-
-
-
- 
- 
-
-
-
-
-
-
